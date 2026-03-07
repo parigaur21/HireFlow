@@ -23,7 +23,7 @@ const importData = async () => {
         await Job.deleteMany();
         await User.deleteMany();
 
-        // Create recruiter users
+        // Create recruiter users with its details!
         const john = await User.create({
             name: 'John Doe',
             email: 'recruiter@example.com',
