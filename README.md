@@ -2,7 +2,7 @@
 
 A modern, full-stack **Recruitment Workflow System** built with the MERN stack. HireFlow connects recruiters with candidates through intelligent job matching, real-time notifications, and a beautiful, responsive interface.
 
-![HireFlow](https://img.shields.io/badge/Stack-MERN-brightgreen) ![License](https://img.shields.io/badge/License-MIT-blue) ![Status](https://img.shields.io/badge/Status-Active-success)
+![HireFlow](https://img.shields.io/badge/Stack-MERN-brightgreen) ![Status](https://img.shields.io/badge/Status-Active-success)
 
 ## ✨ Features
 
@@ -135,11 +135,3 @@ HireFlow/
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
----
-
-**Built with ❤️ by [parigaur21](https://github.com/parigaur21)**
