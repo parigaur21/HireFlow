@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const Application = require('../models/Application');
 const Job = require('../models/Job');
+const { createNotification } = require('./notificationController');
 
 // Status Transition Rules
 const STATUS_TRANSITIONS = {
@@ -101,6 +102,17 @@ const applyToJob = asyncHandler(async (req, res) => {
         success: true,
         data: application
     });
+
+    // Notify recruiter about new application
+    if (job.postedBy) {
+        createNotification({
+            user: job.postedBy,
+            type: 'new_application',
+            title: 'New Application',
+            message: `${req.user.name} applied for ${job.title}`,
+            link: '/recruiter-dashboard'
+        });
+    }
 });
 
 // @desc    Withdraw application
@@ -188,6 +200,18 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
     if (notes) application.notes = notes;
 
     const updatedApplication = await application.save();
+
+    // Notify candidate about status change
+    if (status) {
+        createNotification({
+            user: application.candidate,
+            type: 'status_change',
+            title: 'Application Update',
+            message: `Your application for ${application.job.title} has been moved to: ${status}`,
+            link: '/candidate-dashboard',
+            metadata: { applicationId: application._id, status }
+        });
+    }
 
     res.json({
         success: true,

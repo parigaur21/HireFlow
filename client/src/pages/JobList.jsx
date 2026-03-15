@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import JobCard from '../components/JobCard';
-import { SearchX, Briefcase, Building2, Workflow, Search, TrendingUp, Shield, Zap } from 'lucide-react';
+import { SearchX, Briefcase, Building2, Workflow, Search, TrendingUp, Shield, Zap, MapPin, Filter, ChevronDown, ChevronUp, Code } from 'lucide-react';
 
 const JobList = () => {
   const navigate = useNavigate();
@@ -17,12 +17,19 @@ const JobList = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(6);
 
+  // Advanced Filters
+  const [showFilters, setShowFilters] = useState(false);
+  const [location, setLocation] = useState('');
+  const [skills, setSkills] = useState('');
+  const [minExp, setMinExp] = useState('');
+  const [maxExp, setMaxExp] = useState('');
+
   const fetchJobs = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const response = await api.get('/jobs', {
-        params: { page, limit, search, company }
+        params: { page, limit, search, company, location, skills, minExperience: minExp, maxExperience: maxExp }
       });
       if (response.data.success) {
         setJobs(response.data.data.jobs);
@@ -34,7 +41,7 @@ const JobList = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, search, company]);
+  }, [page, limit, search, company, location, skills, minExp, maxExp]);
 
   useEffect(() => {
     const timer = setTimeout(() => { fetchJobs(); }, 500);
@@ -101,6 +108,65 @@ const JobList = () => {
             onChange={handleCompanyChange}
           />
         </div>
+
+        {/* Advanced Filters Toggle */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="filter-toggle-btn"
+          >
+            <Filter size={16} />
+            Advanced Filters
+            {showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+          {(location || skills || minExp || maxExp) && (
+            <button
+              onClick={() => { setLocation(''); setSkills(''); setMinExp(''); setMaxExp(''); setPage(1); }}
+              className="clear-filters-btn"
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
+
+        {showFilters && (
+          <div className="advanced-filters">
+            <div className="filter-field">
+              <label><MapPin size={14} /> Location</label>
+              <input
+                type="text"
+                placeholder="e.g. Remote, San Francisco..."
+                value={location}
+                onChange={(e) => { setLocation(e.target.value); setPage(1); }}
+              />
+            </div>
+            <div className="filter-field">
+              <label><Code size={14} /> Skills</label>
+              <input
+                type="text"
+                placeholder="React, Node.js, Python..."
+                value={skills}
+                onChange={(e) => { setSkills(e.target.value); setPage(1); }}
+              />
+            </div>
+            <div className="filter-field">
+              <label><Briefcase size={14} /> Min Experience (years)</label>
+              <input
+                type="number" min="0" placeholder="0"
+                value={minExp}
+                onChange={(e) => { setMinExp(e.target.value); setPage(1); }}
+              />
+            </div>
+            <div className="filter-field">
+              <label><Briefcase size={14} /> Max Experience (years)</label>
+              <input
+                type="number" min="0" placeholder="10"
+                value={maxExp}
+                onChange={(e) => { setMaxExp(e.target.value); setPage(1); }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ─── DASHBOARD ─── */}
@@ -272,7 +338,7 @@ const JobList = () => {
 
         /* ━━━ SEARCH ━━━ */
         .search-bar {
-          background: white;
+          background: var(--card-bg);
           border-radius: 16px;
           padding: 0.5rem 0.75rem;
           display: flex; align-items: center; gap: 0;
@@ -291,6 +357,74 @@ const JobList = () => {
         .search-field input:focus { box-shadow: none; border: none; }
         .search-divider {
           width: 1px; height: 28px; background: var(--border-color); flex-shrink: 0;
+        }
+
+        /* ━━━ ADVANCED FILTERS ━━━ */
+        .filter-toggle-btn {
+          background: transparent !important;
+          border: 1px solid var(--border-color) !important;
+          color: var(--text-muted) !important;
+          padding: 0.45rem 1rem;
+          font-size: 0.82rem; font-weight: 700;
+          border-radius: 10px;
+          display: flex; align-items: center; gap: 0.4rem;
+          cursor: pointer; box-shadow: none !important;
+          transition: all 0.2s;
+        }
+        .filter-toggle-btn:hover {
+          background: rgba(37,99,235,0.05) !important;
+          color: var(--primary-color) !important;
+          border-color: var(--primary-color) !important;
+          transform: none !important;
+        }
+        .clear-filters-btn {
+          background: rgba(239,68,68,0.08) !important;
+          color: #ef4444 !important;
+          border: 1px solid rgba(239,68,68,0.15) !important;
+          padding: 0.4rem 0.9rem;
+          font-size: 0.78rem; font-weight: 700;
+          border-radius: 8px;
+          cursor: pointer; box-shadow: none !important;
+        }
+        .clear-filters-btn:hover {
+          background: rgba(239,68,68,0.15) !important;
+          transform: none !important;
+        }
+        .advanced-filters {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 1rem;
+          background: var(--card-bg);
+          border: 1px solid var(--border-color);
+          border-radius: 14px;
+          padding: 1.25rem;
+          box-shadow: var(--shadow-sm);
+          animation: slideDown 0.2s ease;
+        }
+        .filter-field label {
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: var(--text-muted);
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+          margin-bottom: 0.35rem;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+        .filter-field input {
+          font-size: 0.85rem;
+          padding: 0.6rem 0.75rem;
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 768px) {
+          .advanced-filters { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 480px) {
+          .advanced-filters { grid-template-columns: 1fr; }
         }
 
         /* ━━━ SECTION LABEL ━━━ */
@@ -338,7 +472,7 @@ const JobList = () => {
         }
 
         .sidebar-card {
-          background: white;
+          background: var(--card-bg);
           border-radius: 16px;
           border: 1px solid var(--border-color);
           box-shadow: 0 2px 16px -4px rgba(0,0,0,0.06);
@@ -400,7 +534,7 @@ const JobList = () => {
           display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
         }
         .stats-mini-item {
-          background: #f8fafc;
+          background: var(--input-bg);
           border-radius: 10px;
           padding: 0.75rem;
           text-align: center;
@@ -441,7 +575,7 @@ const JobList = () => {
 
         /* ━━━ EMPTY STATE ━━━ */
         .empty-state-card {
-          background: white;
+          background: var(--card-bg);
           border-radius: 16px;
           padding: 3.5rem 2rem;
           text-align: center;

@@ -50,12 +50,15 @@ const getJobs = asyncHandler(async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = Math.max((page - 1) * limit, 0);
 
-    const { search, company, postedBy } = req.query;
+    const { search, company, postedBy, location, skills, minExperience, maxExperience } = req.query;
 
     let query = {};
 
     if (search && search.trim() !== "") {
-        query.title = { $regex: search.trim(), $options: "i" };
+        query.$or = [
+            { title: { $regex: search.trim(), $options: "i" } },
+            { description: { $regex: search.trim(), $options: "i" } }
+        ];
     }
 
     if (company && company.trim() !== "") {
@@ -64,6 +67,23 @@ const getJobs = asyncHandler(async (req, res) => {
 
     if (postedBy && postedBy.trim() !== "") {
         query.postedBy = postedBy;
+    }
+
+    if (location && location.trim() !== "") {
+        query.location = { $regex: location.trim(), $options: "i" };
+    }
+
+    if (skills && skills.trim() !== "") {
+        const skillList = skills.split(',').map(s => s.trim()).filter(Boolean);
+        if (skillList.length > 0) {
+            query.requiredSkills = { $in: skillList.map(s => new RegExp(s, 'i')) };
+        }
+    }
+
+    if (minExperience || maxExperience) {
+        query.experienceRequired = {};
+        if (minExperience) query.experienceRequired.$gte = Number(minExperience);
+        if (maxExperience) query.experienceRequired.$lte = Number(maxExperience);
     }
 
     const total = await Job.countDocuments(query);

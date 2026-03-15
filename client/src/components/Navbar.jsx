@@ -1,13 +1,20 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import NotificationBell from './NotificationBell';
+import { Sun, Moon, User, MessageSquare, BarChart3, Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/');
+    setMobileOpen(false);
   };
 
   return (
@@ -17,21 +24,38 @@ const Navbar = () => {
           Hire<span>Flow</span>
         </Link>
 
-        <div className="nav-links">
+        {/* Mobile menu button */}
+        <button className="mobile-menu-btn" onClick={() => setMobileOpen(!mobileOpen)}>
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+
+        <div className={`nav-links ${mobileOpen ? 'nav-links-open' : ''}`}>
           <NavLink
             to="/jobs"
             className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+            onClick={() => setMobileOpen(false)}
           >
             Browse Jobs
           </NavLink>
 
           {user && (
-            <NavLink
-              to="/resume-analyzer"
-              className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
-            >
-              Resume Analyzer
-            </NavLink>
+            <>
+              <NavLink
+                to="/resume-analyzer"
+                className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+                onClick={() => setMobileOpen(false)}
+              >
+                Resume Analyzer
+              </NavLink>
+              <NavLink
+                to="/analytics"
+                className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+                onClick={() => setMobileOpen(false)}
+              >
+                <BarChart3 size={16} style={{ marginRight: '0.3rem', verticalAlign: 'middle' }} />
+                Analytics
+              </NavLink>
+            </>
           )}
 
           {user ? (
@@ -40,6 +64,7 @@ const Navbar = () => {
                 <NavLink
                   to="/recruiter-dashboard"
                   className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+                  onClick={() => setMobileOpen(false)}
                 >
                   Dashboard
                 </NavLink>
@@ -47,21 +72,43 @@ const Navbar = () => {
                 <NavLink
                   to="/candidate-dashboard"
                   className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+                  onClick={() => setMobileOpen(false)}
                 >
                   Dashboard
                 </NavLink>
               )}
-              <button onClick={handleLogout} className="btn-logout">Logout</button>
+
+              <div className="nav-actions">
+                <NavLink to="/chat" className="nav-icon-btn" title="Messages" onClick={() => setMobileOpen(false)}>
+                  <MessageSquare size={20} />
+                </NavLink>
+
+                <NotificationBell />
+
+                <button onClick={toggleTheme} className="nav-icon-btn" title={theme === 'light' ? 'Dark Mode' : 'Light Mode'}>
+                  {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                </button>
+
+                <NavLink to="/profile" className="nav-avatar" title="Profile" onClick={() => setMobileOpen(false)}>
+                  {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                </NavLink>
+
+                <button onClick={handleLogout} className="btn-logout">Logout</button>
+              </div>
             </>
           ) : (
             <>
+              <button onClick={toggleTheme} className="nav-icon-btn" title={theme === 'light' ? 'Dark Mode' : 'Light Mode'}>
+                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+              </button>
               <NavLink
                 to="/login"
                 className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
+                onClick={() => setMobileOpen(false)}
               >
                 Login
               </NavLink>
-              <Link to="/register" className="btn-register">Get Started</Link>
+              <Link to="/register" className="btn-register" onClick={() => setMobileOpen(false)}>Get Started</Link>
             </>
           )}
         </div>
@@ -69,26 +116,27 @@ const Navbar = () => {
 
       <style>{`
         .navbar {
-          background-color: #ffffff;
-          border-bottom: 1px solid #edf2f7;
+          background-color: var(--card-bg);
+          border-bottom: 1px solid var(--border-color);
           padding: 0.85rem 0;
           position: sticky;
           top: 0;
           z-index: 1000;
           box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.06);
+          transition: background-color 0.3s, border-color 0.3s;
         }
         .nav-container {
           width: 100%;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 0 3rem;
+          padding: 0 2rem;
           box-sizing: border-box;
         }
         .nav-logo {
           font-size: 1.75rem;
           font-weight: 900;
-          color: #0f172a;
+          color: var(--text-main);
           text-decoration: none;
           letter-spacing: -0.03em;
         }
@@ -101,22 +149,25 @@ const Navbar = () => {
         .nav-links {
           display: flex;
           align-items: center;
-          gap: 2rem;
+          gap: 1.5rem;
         }
         .nav-item {
           text-decoration: none;
-          color: #475569;
+          color: var(--text-muted);
           font-weight: 600;
-          font-size: 1rem;
+          font-size: 0.92rem;
           padding: 0.5rem 0.25rem;
           transition: all 0.2s ease;
           position: relative;
+          display: flex;
+          align-items: center;
+          white-space: nowrap;
         }
         .nav-item:hover {
-          color: #2563eb;
+          color: var(--primary-color);
         }
         .nav-item.active {
-          color: #2563eb;
+          color: var(--primary-color);
         }
         .nav-item.active::after {
           content: '';
@@ -128,39 +179,131 @@ const Navbar = () => {
           background: linear-gradient(90deg, #2563eb, #3b82f6);
           border-radius: 2px;
         }
+        .nav-actions {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          margin-left: 0.5rem;
+        }
+        .nav-icon-btn {
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          padding: 0.5rem;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+          box-shadow: none;
+          text-decoration: none;
+        }
+        .nav-icon-btn:hover {
+          background: rgba(37,99,235,0.08);
+          color: var(--primary-color);
+          transform: none;
+          box-shadow: none;
+        }
+        .nav-avatar {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #2563eb, #8b5cf6);
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          font-size: 0.85rem;
+          text-decoration: none;
+          transition: all 0.2s;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+        .nav-avatar:hover {
+          transform: scale(1.08);
+          box-shadow: 0 2px 12px rgba(37,99,235,0.3);
+        }
         .btn-logout {
-          background: #f8fafc;
-          color: #475569;
-          padding: 0.55rem 1.25rem;
-          font-size: 0.95rem;
+          background: var(--border-color);
+          color: var(--text-muted);
+          padding: 0.5rem 1rem;
+          font-size: 0.85rem;
           font-weight: 700;
-          border: 1px solid #e2e8f0;
+          border: 1px solid var(--border-color);
           border-radius: 10px;
           cursor: pointer;
           transition: all 0.2s;
-          margin-left: 0.5rem;
         }
         .btn-logout:hover {
-          background: #f1f5f9;
-          color: #1e293b;
-          border-color: #cbd5e1;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+          background: rgba(239,68,68,0.1);
+          color: #ef4444;
+          border-color: rgba(239,68,68,0.2);
+          box-shadow: none;
+          transform: none;
         }
         .btn-register {
           background: linear-gradient(135deg, #2563eb, #3b82f6);
           color: white !important;
-          padding: 0.65rem 1.5rem;
+          padding: 0.6rem 1.4rem;
           border-radius: 10px;
           font-weight: 700;
-          font-size: 0.95rem;
+          font-size: 0.92rem;
           text-decoration: none;
           transition: all 0.2s;
           box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+          white-space: nowrap;
         }
         .btn-register:hover {
           background: linear-gradient(135deg, #1d4ed8, #2563eb);
           transform: translateY(-1px);
           box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+        }
+        .mobile-menu-btn {
+          display: none;
+          background: transparent;
+          border: none;
+          color: var(--text-main);
+          cursor: pointer;
+          padding: 0.5rem;
+          box-shadow: none;
+        }
+        .mobile-menu-btn:hover {
+          transform: none;
+          box-shadow: none;
+        }
+
+        @media (max-width: 900px) {
+          .mobile-menu-btn {
+            display: flex;
+            align-items: center;
+          }
+          .nav-links {
+            display: none;
+            flex-direction: column;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            padding: 1rem 2rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            gap: 0.75rem;
+            z-index: 999;
+          }
+          .nav-links-open {
+            display: flex !important;
+          }
+          .nav-actions {
+            margin-left: 0;
+            justify-content: center;
+            flex-wrap: wrap;
+          }
+          .nav-item.active::after {
+            display: none;
+          }
         }
       `}</style>
     </nav>

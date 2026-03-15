@@ -43,6 +43,37 @@ const userSchema = new mongoose.Schema({
     location: {
         type: String,
         default: 'Remote'
+    },
+
+    bio: {
+        type: String,
+        default: '',
+        maxlength: 500
+    },
+
+    phone: {
+        type: String,
+        default: ''
+    },
+
+    linkedin: {
+        type: String,
+        default: ''
+    },
+
+    github: {
+        type: String,
+        default: ''
+    },
+
+    portfolio: {
+        type: String,
+        default: ''
+    },
+
+    avatar: {
+        type: String,
+        default: ''
     }
 
 }, {
